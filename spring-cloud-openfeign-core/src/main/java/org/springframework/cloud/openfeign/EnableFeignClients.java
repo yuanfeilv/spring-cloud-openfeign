@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Import;
  * @author Spencer Gibb
  * @author Dave Syer
  * @since 1.0
+ * springCloud feignClient 的声明启动类
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

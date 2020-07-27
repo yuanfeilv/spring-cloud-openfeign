@@ -63,6 +63,7 @@ import org.springframework.context.annotation.Import;
 @Import(DefaultGzipDecoderConfiguration.class)
 public class FeignAutoConfiguration {
 
+	// 注入FeignClientSpecification 类，他的初始化在 FeignClientsRegistrar.registerClientConfiguration() 中
 	@Autowired(required = false)
 	private List<FeignClientSpecification> configurations = new ArrayList<>();
 

@@ -38,6 +38,7 @@ import org.springframework.core.annotation.AliasFor;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
+// 可继承的注解
 public @interface FeignClient {
 
 	/**

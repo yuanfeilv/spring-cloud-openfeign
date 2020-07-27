@@ -93,6 +93,12 @@ class FeignClientFactoryBean
 		Assert.hasText(name, "Name must be set");
 	}
 
+
+	/**
+	 * 创建feign 方法
+	 * @param context
+	 * @return
+	 */
 	protected Feign.Builder feign(FeignContext context) {
 		FeignLoggerFactory loggerFactory = get(context, FeignLoggerFactory.class);
 		Logger logger = loggerFactory.create(type);
@@ -142,14 +148,17 @@ class FeignClientFactoryBean
 
 	protected void configureUsingConfiguration(FeignContext context,
 			Feign.Builder builder) {
+		// 设置日志级别
 		Logger.Level level = getInheritedAwareOptional(context, Logger.Level.class);
 		if (level != null) {
 			builder.logLevel(level);
 		}
+		// 设置重试策略
 		Retryer retryer = getInheritedAwareOptional(context, Retryer.class);
 		if (retryer != null) {
 			builder.retryer(retryer);
 		}
+		// feign 的错误解析接口
 		ErrorDecoder errorDecoder = getInheritedAwareOptional(context,
 				ErrorDecoder.class);
 		if (errorDecoder != null) {
@@ -163,6 +172,7 @@ class FeignClientFactoryBean
 				builder.errorDecoder(factoryErrorDecoder);
 			}
 		}
+		// 设置连接超时和读取超时时间
 		Request.Options options = getInheritedAwareOptional(context,
 				Request.Options.class);
 		if (options != null) {
@@ -170,6 +180,7 @@ class FeignClientFactoryBean
 			readTimeoutMillis = options.readTimeoutMillis();
 			connectTimeoutMillis = options.connectTimeoutMillis();
 		}
+		// 拦截器设置
 		Map<String, RequestInterceptor> requestInterceptors = getInheritedAwareInstances(
 				context, RequestInterceptor.class);
 		if (requestInterceptors != null) {
@@ -294,6 +305,7 @@ class FeignClientFactoryBean
 
 	protected <T> T loadBalance(Feign.Builder builder, FeignContext context,
 			HardCodedTarget<T> target) {
+		// 获取feign Client
 		Client client = getOptional(context, Client.class);
 		if (client != null) {
 			builder.client(client);
@@ -316,9 +328,11 @@ class FeignClientFactoryBean
 	 * information
 	 */
 	<T> T getTarget() {
+		// 实例化feignContext 对象 具体注入逻辑在FeignAutoConfiguration 中,实际上是获取对应的configuration
 		FeignContext context = applicationContext.getBean(FeignContext.class);
+		// 生成build 对象，用来生成feign
 		Feign.Builder builder = feign(context);
-
+		// 如果url 为null 则走负载均衡，生成有负载均衡的代理类
 		if (!StringUtils.hasText(url)) {
 			if (!name.startsWith("http")) {
 				url = "http://" + name;
@@ -327,9 +341,11 @@ class FeignClientFactoryBean
 				url = name;
 			}
 			url += cleanPath();
+			// 生成负载均衡的代理类
 			return (T) loadBalance(builder, context,
 					new HardCodedTarget<>(type, name, url));
 		}
+		// 如果指定了url 生成默认的代理类
 		if (StringUtils.hasText(url) && !url.startsWith("http")) {
 			url = "http://" + url;
 		}
@@ -349,6 +365,7 @@ class FeignClientFactoryBean
 			builder.client(client);
 		}
 		Targeter targeter = get(context, Targeter.class);
+		// 生成默认的代理类
 		return (T) targeter.target(this, builder, context,
 				new HardCodedTarget<>(type, name, url));
 	}
